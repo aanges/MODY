@@ -1,0 +1,16 @@
+# Gradle / Loom
+.gradle/
+build/
+run/
+out/
+*.class
+
+# Large local artifacts (rebuild with gradlew build / remapJar)
+*.jar
+!src/**/tag.png
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.log
