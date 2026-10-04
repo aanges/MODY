@@ -1,8 +1,8 @@
 package com.dontcam.fabric.mixin;
 
 import com.dontcam.fabric.DontCamBadges;
-import com.dontcam.fabric.gui.ClientOptionsScreen;
 import com.dontcam.fabric.gui.DontCamButtonWidget;
+import com.dontcam.fabric.gui.DontCamMenuScreen;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Lunar-style main menu: full dark background (hides vanilla panorama / logo /
  * splash), banner with tag.png, vertical centered layout:
  * [Singleplayer][Multiplayer] in one row, then Minecraft Settings,
- * DontCam Mods (Client Options), Quit. Footer shows game + mod version.
+ * DontCam Mods, Quit. Footer shows game + mod version.
  */
 @Mixin(TitleScreen.class)
 public abstract class MixinTitleScreen extends Screen {
@@ -31,6 +31,9 @@ public abstract class MixinTitleScreen extends Screen {
     @Inject(method = "init", at = @At("TAIL"))
     private void dontcam$replaceButtons(CallbackInfo ci) {
         try {
+            if (ci == null) {
+                return;
+            }
             this.clearChildren();
             int cx = this.width / 2;
             int y = this.height / 2 + 8;
@@ -69,7 +72,7 @@ public abstract class MixinTitleScreen extends Screen {
                     button -> {
                         try {
                             if (this.client != null) {
-                                this.client.setScreen(new ClientOptionsScreen());
+                                this.client.setScreen(new DontCamMenuScreen());
                             }
                         } catch (Exception ignored) {
                         }
@@ -102,38 +105,31 @@ public abstract class MixinTitleScreen extends Screen {
             context.fill(cx - 230, 91, cx + 230, 92, 0xFF2E9BFF);
             DontCamBadges.drawTagIcon(context, cx - 118, 30, 24);
             context.drawCenteredTextWithShadow(this.textRenderer,
-                    Text.literal("DontCam Client"), cx + 12, 32, 0xFFFFFFFF);
-            String auth;
-            try {
-                auth = com.dontcam.fabric.DontCamFabricMod.localMicrosoft ? "\u00A7aMicrosoft" : "\u00A77Offline";
-            } catch (Exception ignored) {
-                auth = "\u00A77Offline";
-            }
-            String line = "DC tag always on  \u2022  " + auth + "  \u2022  v0.1.0";
-            try {
-                int tw = this.textRenderer.getWidth(line);
-                context.drawText(this.textRenderer, line, cx + 12 - tw / 2, 50, 0xFF7DD3FC, false);
-            } catch (Exception ignored) {
-            }
-            String ver = "Minecraft 1.21.1";
+                    Text.literal("DontCam Client"), cx + 12, 34, 0xFFFFFFFF);
+            context.drawCenteredTextWithShadow(this.textRenderer,
+                    Text.literal("minimal minecraft client"), cx + 12, 52, 0xFF7DD3FC);
+            String ver = "v0.1.0";
             try {
                 if (this.client != null && this.client.getGameVersion() != null) {
-                    ver = "Minecraft " + this.client.getGameVersion();
+                    ver += "  \u2022  " + this.client.getGameVersion();
+                } else {
+                    ver += "  \u2022  1.21.1";
+                }
+            } catch (Exception ignored) {
+                ver = "v0.1.0  \u2022  1.21.1";
+            }
+            context.drawCenteredTextWithShadow(this.textRenderer, Text.literal(ver), cx + 12, 68, 0xFF64748B);
+            String left = "Minecraft 1.21.1";
+            try {
+                if (this.client != null && this.client.getGameVersion() != null) {
+                    left = "Minecraft " + this.client.getGameVersion();
                 }
             } catch (Exception ignored) {
             }
-            try {
-                int vw = this.textRenderer.getWidth(ver);
-                context.drawText(this.textRenderer, ver, cx + 12 - vw / 2, 64, 0xFF64748B, false);
-            } catch (Exception ignored) {
-            }
-            try {
-                context.drawText(this.textRenderer, ver, 4, this.height - 12, 0xFF64748B, false);
-                String right = "DontCam v0.1.0";
-                int rw = this.textRenderer.getWidth(right);
-                context.drawText(this.textRenderer, right, this.width - rw - 4, this.height - 12, 0xFF64748B, false);
-            } catch (Exception ignored) {
-            }
+            context.drawText(this.textRenderer, left, 4, this.height - 12, 0xFF64748B, false);
+            String right = "DontCam v0.1.0";
+            int rw = this.textRenderer.getWidth(right);
+            context.drawText(this.textRenderer, right, this.width - rw - 4, this.height - 12, 0xFF64748B, false);
         } catch (Exception ignored) {
         }
     }

@@ -38,7 +38,6 @@ public class DontCamMod {
     public static final String MODID = "dontcam";
     public static final String VERSION = "0.1.0";
 
-    /** Owner crown UUID. Crown renders only for Microsoft-authenticated sessions. */
     public static final UUID OWNER_UUID = UUID.fromString("76b1ef92-f047-428a-a068-ccd4d1eb4863");
 
     public static final String CHANNEL_HELLO = "dontcam:hello";
@@ -47,9 +46,7 @@ public class DontCamMod {
     public static KeyBinding openMenu;
     public static DontCamConfig config;
 
-    /** UUIDs confirmed to run DontCam (received via roster channel). */
     public static final Set<UUID> roster = Collections.synchronizedSet(new HashSet<UUID>());
-    /** Per-UUID Microsoft flag from the roster (owner crown needs microsoft=true). */
     public static final Map<UUID, Boolean> rosterMicrosoft = new ConcurrentHashMap<UUID, Boolean>();
 
     public static boolean localMicrosoft = false;
@@ -62,10 +59,10 @@ public class DontCamMod {
         localMicrosoft = "msa".equalsIgnoreCase(System.getProperty("dontcam.auth", ""));
         try {
             String raw = System.getProperty("dontcam.uuid", "");
-            if (!raw.isEmpty()) {
+            if (raw != null && !raw.isEmpty()) {
                 localUuid = UUID.fromString(raw);
             }
-        } catch (IllegalArgumentException ignored) {
+        } catch (Exception ignored) {
             localUuid = null;
         }
 
@@ -82,27 +79,31 @@ public class DontCamMod {
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-        Minecraft mc = Minecraft.getMinecraft();
-        if (mc.player == null || mc.currentScreen != null) {
-            return;
-        }
-        if (openMenu != null && openMenu.isPressed()) {
-            mc.displayGuiScreen(new GuiDontCamMenu());
+        try {
+            if (event == null || event.phase != TickEvent.Phase.END) {
+                return;
+            }
+            Minecraft mc = Minecraft.getMinecraft();
+            if (mc == null || mc.player == null || mc.currentScreen != null) {
+                return;
+            }
+            if (openMenu != null && openMenu.isPressed()) {
+                mc.displayGuiScreen(new GuiDontCamMenu());
+            }
+        } catch (Exception ignored) {
         }
     }
 
-    /** Replace the vanilla main menu with the DontCam one (except our own screens). */
     @SubscribeEvent
     public void onGuiOpen(GuiOpenEvent event) {
-        if (event.getGui() instanceof GuiMainMenu) {
-            event.setGui(new GuiCustomMainMenu());
+        try {
+            if (event != null && event.getGui() instanceof GuiMainMenu) {
+                event.setGui(new GuiCustomMainMenu());
+            }
+        } catch (Exception ignored) {
         }
     }
 
-    /** True when the given player is known to run DontCam (self or roster). */
     public static boolean isDontCam(UUID uuid) {
         if (uuid == null) {
             return false;
@@ -113,7 +114,6 @@ public class DontCamMod {
         return roster.contains(uuid);
     }
 
-    /** Owner crown: matching UUID AND a Microsoft session (offline never counts). */
     public static boolean isOwner(UUID uuid) {
         if (uuid == null || !OWNER_UUID.equals(uuid)) {
             return false;
@@ -125,7 +125,6 @@ public class DontCamMod {
         return ms != null && ms.booleanValue();
     }
 
-    /** "DC" text badge + owner crown suffix, using vanilla formatting codes. */
     public static String badgePrefix(boolean owner) {
         return "\u00A79\u00A7lD\u00A7b\u00A7lC\u00A7r ";
     }
@@ -134,13 +133,12 @@ public class DontCamMod {
         return owner ? " \u00A76\u00A7l\u2605" : "";
     }
 
-    /** Announce this client to the server (vanilla servers ignore unknown channels). */
     public static void sendHello() {
-        Minecraft mc = Minecraft.getMinecraft();
-        if (mc.getConnection() == null) {
-            return;
-        }
         try {
+            Minecraft mc = Minecraft.getMinecraft();
+            if (mc == null || mc.getConnection() == null) {
+                return;
+            }
             String register = CHANNEL_HELLO + "\0" + CHANNEL_ROSTER;
             mc.getConnection().sendPacket(new CPacketCustomPayload("REGISTER",
                     new PacketBuffer(Unpooled.copiedBuffer(register.getBytes(StandardCharsets.UTF_8)))));
@@ -156,7 +154,6 @@ public class DontCamMod {
     public void onJoinServer(FMLNetworkEvent.ClientConnectedToServerEvent event) {
         roster.clear();
         rosterMicrosoft.clear();
-        // Delay one tick so the NetHandler is fully ready.
         new Thread(new Runnable() {
             @Override
             public void run() {

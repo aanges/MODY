@@ -1,10 +1,11 @@
 package com.dontcam.fabric.gui;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 
-/** Rounded button with hover glow, used by DontCam screens. */
+/** Dark Lunar-style button with hover glow, used by DontCam screens. */
 public class DontCamButtonWidget extends ButtonWidget {
 
     private static final int BG = 0xCC101018;
@@ -18,27 +19,36 @@ public class DontCamButtonWidget extends ButtonWidget {
 
     @Override
     public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-        boolean hovered = this.isHovered();
-        int bg = hovered ? BG_HOVER : BG;
-        int border = hovered ? BORDER : BORDER_DIM;
-        int x = this.getX();
-        int y = this.getY();
-        int w = this.width;
-        int h = this.height;
-        // body
-        context.fill(x + 1, y, x + w - 1, y + h, bg);
-        context.fill(x, y + 1, x + w, y + h - 1, bg);
-        // border
-        context.fill(x + 1, y, x + w - 1, y + 1, border);
-        context.fill(x + 1, y + h - 1, x + w, y + h, border);
-        context.fill(x, y + 1, x + 1, y + h - 1, border);
-        context.fill(x + w - 1, y + 1, x + w, y + h - 1, border);
-        if (hovered) {
-            context.fill(x + 1, y + 1, x + w - 1, y + 3, 0x33FFFFFF);
+        try {
+            if (context == null) {
+                return;
+            }
+            boolean hovered = this.isHovered();
+            int bg = hovered ? BG_HOVER : BG;
+            int border = hovered ? BORDER : BORDER_DIM;
+            int x = this.getX();
+            int y = this.getY();
+            int w = this.width;
+            int h = this.height;
+            // body
+            context.fill(x + 1, y, x + w - 1, y + h, bg);
+            context.fill(x, y + 1, x + w, y + h - 1, bg);
+            // border
+            context.fill(x + 1, y, x + w - 1, y + 1, border);
+            context.fill(x + 1, y + h - 1, x + w, y + h, border);
+            context.fill(x, y + 1, x + 1, y + h - 1, border);
+            context.fill(x + w - 1, y + 1, x + w, y + h - 1, border);
+            if (hovered) {
+                context.fill(x + 1, y + 1, x + w - 1, y + 3, 0x33FFFFFF);
+            }
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client == null || client.textRenderer == null || this.getMessage() == null) {
+                return;
+            }
+            int color = this.active ? 0xFFFFFFFF : 0xFFA0A0A0;
+            context.drawCenteredTextWithShadow(client.textRenderer,
+                    this.getMessage(), x + w / 2, y + (h - 8) / 2, color);
+        } catch (Exception ignored) {
         }
-        int color = this.active ? 0xFFFFFFFF : 0xFFA0A0A0;
-        context.drawCenteredTextWithShadow(
-                net.minecraft.client.MinecraftClient.getInstance().textRenderer,
-                this.getMessage(), x + w / 2, y + (h - 8) / 2, color);
     }
 }

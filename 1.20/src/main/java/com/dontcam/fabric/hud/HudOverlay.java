@@ -23,27 +23,45 @@ public class HudOverlay {
             if (context == null) {
                 return;
             }
-            MinecraftClient client = MinecraftClient.getInstance();
+            MinecraftClient client;
+            try {
+                client = MinecraftClient.getInstance();
+            } catch (Throwable t) {
+                return;
+            }
             if (client == null || client.player == null || client.options == null
                     || client.textRenderer == null || client.getWindow() == null) {
                 return;
             }
-            if (client.options.hudHidden || client.options.debugEnabled) {
+            try {
+                if (client.options.hudHidden || client.options.debugEnabled) {
+                    return;
+                }
+            } catch (Throwable t) {
                 return;
             }
             if (DontCamFabricMod.config == null) {
                 return;
             }
-            if (DontCamFabricMod.config.fps) {
-                drawFps(client, context);
+            try {
+                if (DontCamFabricMod.config.fps) {
+                    drawFps(client, context);
+                }
+            } catch (Throwable ignored) {
             }
-            if (DontCamFabricMod.config.cps) {
-                drawCps(client, context);
+            try {
+                if (DontCamFabricMod.config.cps) {
+                    drawCps(client, context);
+                }
+            } catch (Throwable ignored) {
             }
-            if (DontCamFabricMod.config.keystrokes) {
-                drawKeystrokes(client, context);
+            try {
+                if (DontCamFabricMod.config.keystrokes) {
+                    drawKeystrokes(client, context);
+                }
+            } catch (Throwable ignored) {
             }
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
         }
     }
 
@@ -55,14 +73,14 @@ public class HudOverlay {
             int fps;
             try {
                 fps = client.getCurrentFps();
-            } catch (Exception ignored) {
+            } catch (Throwable ignored) {
                 return;
             }
             String text = fps + " FPS";
             int w = client.textRenderer.getWidth(text);
             context.fill(5, 5, 9 + w, 18, BG);
             context.drawText(client.textRenderer, text, 7, 7, TEXT, false);
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
         }
     }
 
@@ -78,7 +96,7 @@ public class HudOverlay {
             int w = client.textRenderer.getWidth(text);
             context.fill(5, 21, 9 + w, 34, BG);
             context.drawText(client.textRenderer, text, 7, 23, TEXT, false);
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
         }
     }
 
@@ -91,13 +109,16 @@ public class HudOverlay {
             int color = pressed ? TEXT_DARK : TEXT_DIM;
             int tw = client.textRenderer.getWidth(label);
             context.drawText(client.textRenderer, label, x + (w - tw) / 2, y + (h - 8) / 2, color, false);
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
         }
     }
 
     private static void drawKeystrokes(MinecraftClient client, DrawContext context) {
         try {
             if (client == null || client.options == null || context == null) {
+                return;
+            }
+            if (client.getWindow() == null) {
                 return;
             }
             int key = 22;
@@ -127,7 +148,7 @@ public class HudOverlay {
             int half = (totalW - gap) / 2;
             key(client, context, x0, my, half, 12, "LMB", lmb);
             key(client, context, x0 + half + gap, my, totalW - half - gap, 12, "RMB", rmb);
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
         }
     }
 }

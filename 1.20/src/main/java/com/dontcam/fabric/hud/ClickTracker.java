@@ -33,22 +33,28 @@ public class ClickTracker {
                     return;
                 }
                 long now = System.nanoTime();
-                boolean attack = client.options.attackKey.isPressed();
-                boolean use = client.options.useKey.isPressed();
-            // Edge-triggered: count the press, not the hold.
-            if (attack && !instance.lastAttack) {
-                synchronized (instance.left) {
-                    instance.left.addLast(now);
+                boolean attack;
+                boolean use;
+                try {
+                    attack = client.options.attackKey.isPressed();
+                    use = client.options.useKey.isPressed();
+                } catch (Throwable t) {
+                    return;
                 }
-            }
-            if (use && !instance.lastUse) {
-                synchronized (instance.right) {
-                    instance.right.addLast(now);
+                // Edge-triggered: count the press, not the hold.
+                if (attack && !instance.lastAttack) {
+                    synchronized (instance.left) {
+                        instance.left.addLast(now);
+                    }
                 }
-            }
-            instance.lastAttack = attack;
-            instance.lastUse = use;
-            } catch (Exception ignored) {
+                if (use && !instance.lastUse) {
+                    synchronized (instance.right) {
+                        instance.right.addLast(now);
+                    }
+                }
+                instance.lastAttack = attack;
+                instance.lastUse = use;
+            } catch (Throwable ignored) {
             }
         });
     }
@@ -58,7 +64,7 @@ public class ClickTracker {
             return 0;
         }
         synchronized (queue) {
-            while (!queue.isEmpty() && now - queue.peekFirst() > WINDOW_NS) {
+            while (!queue.isEmpty() && queue.peekFirst() != null && now - queue.peekFirst() > WINDOW_NS) {
                 queue.pollFirst();
             }
             return queue.size();
@@ -66,11 +72,19 @@ public class ClickTracker {
     }
 
     public int leftCps() {
-        return prune(left, System.nanoTime());
+        try {
+            return prune(left, System.nanoTime());
+        } catch (Throwable t) {
+            return 0;
+        }
     }
 
     public int rightCps() {
-        return prune(right, System.nanoTime());
+        try {
+            return prune(right, System.nanoTime());
+        } catch (Throwable t) {
+            return 0;
+        }
     }
 
     /** Called by the HUD to keep mouse-held state out of the counters. */

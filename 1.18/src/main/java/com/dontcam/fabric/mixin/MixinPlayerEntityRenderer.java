@@ -17,10 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.UUID;
 
-/**
- * Custom nametag for DontCam players: tag.png icon + "DC" badge before the nick,
- * gold star for the owner (Microsoft sessions only).
- */
 @Mixin(PlayerEntityRenderer.class)
 public abstract class MixinPlayerEntityRenderer {
 
@@ -29,7 +25,6 @@ public abstract class MixinPlayerEntityRenderer {
                                VertexConsumerProvider vertexConsumers, int light,
                                CallbackInfo ci) {
         try {
-            // config == null means "not loaded yet" -> treat badges as ON, never NPE.
             if (DontCamFabricMod.config != null && !DontCamFabricMod.config.badges) {
                 return;
             }
@@ -108,7 +103,6 @@ public abstract class MixinPlayerEntityRenderer {
                     return;
                 }
                 ci.cancel();
-                // Icon first, then text shifted right so they sit side by side.
                 DontCamBadges.drawTagIconWorld(matrices, width, -1.0f, icon);
                 float textX = width + icon + gap;
                 if (matrices.peek() == null || matrices.peek().getPositionMatrix() == null) {

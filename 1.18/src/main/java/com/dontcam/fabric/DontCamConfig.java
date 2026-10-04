@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 
-/** Simple JSON toggles stored in config/dontcam.json */
 public class DontCamConfig {
 
     public boolean fps = true;
@@ -18,7 +17,7 @@ public class DontCamConfig {
     private final File file;
 
     public DontCamConfig(File configDir) {
-        if (!configDir.exists()) {
+        if (configDir != null && !configDir.exists()) {
             configDir.mkdirs();
         }
         this.file = new File(configDir, "dontcam.json");
@@ -26,12 +25,15 @@ public class DontCamConfig {
     }
 
     public void load() {
-        if (!file.exists()) {
+        if (file == null || !file.exists()) {
             save();
             return;
         }
         try (FileReader reader = new FileReader(file)) {
             JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+            if (json == null) {
+                return;
+            }
             if (json.has("fps")) {
                 fps = json.get("fps").getAsBoolean();
             }
@@ -49,6 +51,9 @@ public class DontCamConfig {
     }
 
     public void save() {
+        if (file == null) {
+            return;
+        }
         try (FileWriter writer = new FileWriter(file)) {
             JsonObject json = new JsonObject();
             json.addProperty("fps", fps);

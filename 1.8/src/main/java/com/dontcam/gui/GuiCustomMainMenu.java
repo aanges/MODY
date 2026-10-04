@@ -10,17 +10,6 @@ import net.minecraft.util.ResourceLocation;
 
 import java.io.IOException;
 
-/**
- * DontCam main menu 1.8.9 (Lunar style): fully custom dark background +
- * gradient, banner with tag.png, no vanilla panorama / logo / splash / dirt.
- * Installed by replacing {@code GuiMainMenu} in {@code GuiOpenEvent}.
- *
- * <p>Layout (vertical, centered, cx = width/2):
- * [Singleplayer][Multiplayer] (one row, side by side)
- * [Minecraft Settings]
- * [DontCam Mods]
- * [Quit Game]
- */
 public class GuiCustomMainMenu extends GuiScreen {
 
     private static final ResourceLocation TAG = new ResourceLocation("dontcam", "textures/tag.png");
@@ -67,7 +56,6 @@ public class GuiCustomMainMenu extends GuiScreen {
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        // Fully custom background: opaque dark + subtle vertical gradient. No dirt, no panorama.
         drawRect(0, 0, this.width, this.height, 0xFF0A0A12);
         drawGradientRect(0, 0, this.width, this.height / 2, 0xFF141422, 0x00141422);
         drawGradientRect(0, this.height / 2, this.width, this.height, 0x00000000, 0xFF050508);

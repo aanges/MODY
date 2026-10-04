@@ -13,13 +13,12 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 /**
- * Roster sync with a DontCam-aware server.
+ * Roster sync with a DontCam-aware server (1.21.1 CustomPayload API).
  *
- * Client announces itself on join; a companion server plugin may answer with a
+ * <p>Client announces itself on join; a companion server plugin may answer with a
  * roster payload. Without one, only the local badge/crown render.
  */
 public class DontCamNetworking {
@@ -49,48 +48,66 @@ public class DontCamNetworking {
     }
 
     public static void init() {
-        PayloadTypeRegistry.playC2S().register(HelloPayload.ID, HelloPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(RosterPayload.ID, RosterPayload.CODEC);
+        try {
+            PayloadTypeRegistry.playC2S().register(HelloPayload.ID, HelloPayload.CODEC);
+            PayloadTypeRegistry.playS2C().register(RosterPayload.ID, RosterPayload.CODEC);
+        } catch (Throwable ignored) {
+        }
 
-        ClientPlayNetworking.registerGlobalReceiver(RosterPayload.ID, (payload, context) -> {
-            try {
-                if (payload == null || context == null || context.client() == null) {
-                    return;
+        try {
+            ClientPlayNetworking.registerGlobalReceiver(RosterPayload.ID, (payload, context) -> {
+                try {
+                    if (payload == null || context == null || context.client() == null) {
+                        return;
+                    }
+                    String json = payload.json();
+                    if (json == null || json.isEmpty()) {
+                        return;
+                    }
+                    try {
+                        context.client().execute(() -> applyRoster(json));
+                    } catch (Throwable ignored) {
+                    }
+                } catch (Throwable ignored) {
                 }
-                String json = payload.json();
-                if (json == null || json.isEmpty()) {
-                    return;
-                }
-                context.client().execute(() -> applyRoster(json));
-            } catch (Exception ignored) {
-            }
-        });
+            });
+        } catch (Throwable ignored) {
+        }
 
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
-            try {
-                if (handler == null || sender == null || client == null) {
-                    return;
+        try {
+            ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+                try {
+                    if (handler == null || sender == null || client == null) {
+                        return;
+                    }
+                    String uuid = DontCamFabricMod.localUuid != null
+                            ? DontCamFabricMod.localUuid.toString().replace("-", "")
+                            : "";
+                    String hello = "{\"uuid\":\"" + uuid + "\",\"microsoft\":" + DontCamFabricMod.localMicrosoft
+                            + ",\"mod\":\"" + DontCamFabricMod.VERSION + "\"}";
+                    try {
+                        sender.sendPacket(new HelloPayload(hello));
+                    } catch (Throwable ignored) {
+                    }
+                } catch (Throwable ignored) {
                 }
-                String uuid = DontCamFabricMod.localUuid != null
-                        ? DontCamFabricMod.localUuid.toString().replace("-", "")
-                        : "";
-                String hello = "{\"uuid\":\"" + uuid + "\",\"microsoft\":" + DontCamFabricMod.localMicrosoft
-                        + ",\"mod\":\"" + DontCamFabricMod.VERSION + "\"}";
-                sender.sendPacket(new HelloPayload(hello));
-            } catch (Exception ignored) {
-            }
-        });
+            });
+        } catch (Throwable ignored) {
+        }
     }
 
     static void applyRoster(String json) {
-        if (json == null || json.isEmpty()) {
-            return;
-        }
-        if (DontCamFabricMod.roster == null || DontCamFabricMod.rosterMicrosoft == null) {
-            return;
-        }
         try {
+            if (json == null || json.isEmpty()) {
+                return;
+            }
+            if (DontCamFabricMod.roster == null || DontCamFabricMod.rosterMicrosoft == null) {
+                return;
+            }
             JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+            if (root == null) {
+                return;
+            }
             JsonArray players = root.getAsJsonArray("players");
             if (players == null) {
                 return;
@@ -98,7 +115,7 @@ public class DontCamNetworking {
             DontCamFabricMod.roster.clear();
             DontCamFabricMod.rosterMicrosoft.clear();
             for (JsonElement element : players) {
-                if (!element.isJsonObject()) {
+                if (element == null || !element.isJsonObject()) {
                     continue;
                 }
                 JsonObject player = element.getAsJsonObject();
@@ -111,9 +128,10 @@ public class DontCamNetworking {
                     DontCamFabricMod.roster.add(uuid);
                     DontCamFabricMod.rosterMicrosoft.put(uuid, microsoft);
                 } catch (IllegalArgumentException ignored) {
+                } catch (Throwable ignored) {
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
         }
     }
 }

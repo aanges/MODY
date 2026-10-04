@@ -9,7 +9,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
-/** FPS / CPS / keystrokes overlay. Toggled from the Right-Shift menu. */
 public class HudOverlay {
 
     private static final int BG = 0x80000000;
@@ -105,16 +104,12 @@ public class HudOverlay {
             boolean lmb = Mouse.isButtonDown(0);
             boolean rmb = Mouse.isButtonDown(1);
 
-            // W row
             key(mc, x0 + key + gap, y0, key, key, "W", w);
-            // A S D row
             key(mc, x0, y0 + key + gap, key, key, "A", a);
             key(mc, x0 + key + gap, y0 + key + gap, key, key, "S", s);
             key(mc, x0 + key * 2 + gap * 2, y0 + key + gap, key, key, "D", d);
-            // Space bar
             int sy = y0 + key * 2 + gap * 2;
             Gui.drawRect(x0, sy, x0 + totalW, sy + spaceH, space ? BG_PRESSED : BG);
-            // Mouse buttons row
             int my = sy + spaceH + gap;
             int half = (totalW - gap) / 2;
             key(mc, x0, my, half, 12, "LMB", lmb);

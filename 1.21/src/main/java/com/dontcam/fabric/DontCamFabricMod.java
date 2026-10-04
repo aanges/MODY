@@ -1,6 +1,6 @@
 package com.dontcam.fabric;
 
-import com.dontcam.fabric.gui.ClientOptionsScreen;
+import com.dontcam.fabric.gui.DontCamMenuScreen;
 import com.dontcam.fabric.hud.ClickTracker;
 import com.dontcam.fabric.hud.HudOverlay;
 import com.dontcam.fabric.net.DontCamNetworking;
@@ -28,7 +28,7 @@ public class DontCamFabricMod implements ClientModInitializer {
     public static final UUID OWNER_UUID = UUID.fromString("76b1ef92-f047-428a-a068-ccd4d1eb4863");
 
     public static KeyBinding openMenu;
-    public static ClientConfig config;
+    public static DontCamConfig config;
 
     /** UUIDs confirmed to run DontCam (received via roster channel). */
     public static final Set<UUID> roster = Collections.synchronizedSet(new HashSet<>());
@@ -40,7 +40,7 @@ public class DontCamFabricMod implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        config = new ClientConfig(MinecraftClient.getInstance().runDirectory.toPath().resolve("config").toFile());
+        config = new DontCamConfig(MinecraftClient.getInstance().runDirectory.toPath().resolve("config").toFile());
 
         localMicrosoft = "msa".equalsIgnoreCase(System.getProperty("dontcam.auth", ""));
         try {
@@ -60,11 +60,14 @@ public class DontCamFabricMod implements ClientModInitializer {
         ClickTracker.init();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player == null || client.currentScreen != null) {
+            if (client == null || client.player == null || client.currentScreen != null) {
+                return;
+            }
+            if (openMenu == null) {
                 return;
             }
             while (openMenu.wasPressed()) {
-                client.setScreen(new ClientOptionsScreen());
+                client.setScreen(new DontCamMenuScreen());
             }
         });
     }

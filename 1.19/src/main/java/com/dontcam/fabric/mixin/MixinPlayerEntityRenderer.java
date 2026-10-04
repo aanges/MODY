@@ -20,6 +20,9 @@ import java.util.UUID;
 /**
  * Custom nametag for DontCam players: tag.png icon + "DC" badge before the nick,
  * gold star for the owner (Microsoft sessions only).
+ *
+ * <p>1.19.4 vanilla signature has NO trailing delta parameter:
+ * {@code renderLabelIfPresent(T, Text, MatrixStack, VertexConsumerProvider, int)}.
  */
 @Mixin(PlayerEntityRenderer.class)
 public abstract class MixinPlayerEntityRenderer {

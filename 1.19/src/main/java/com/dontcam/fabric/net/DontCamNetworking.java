@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 /**
- * Roster sync with a DontCam-aware server (1.20.1-era networking API:
+ * Roster sync with a DontCam-aware server (1.19.4-era networking API:
  * raw Identifier + PacketByteBuf, no CustomPayload records).
  *
  * <p>Client announces itself on join; a companion server plugin may answer with a

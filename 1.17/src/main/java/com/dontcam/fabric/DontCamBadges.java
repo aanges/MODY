@@ -16,19 +16,13 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Matrix4f;
 
-/**
- * Shared DC badge helpers + {@code tag.png} icon rendering (1.17.1: MatrixStack era,
- * no {@code Text.literal} — uses {@code LiteralText}).
- */
 public final class DontCamBadges {
 
-    /** Small infinity-logo icon drawn before the nickname. */
     public static final Identifier TAG_TEXTURE = new Identifier("dontcam", "textures/tag.png");
 
     private DontCamBadges() {
     }
 
-    /** {@code D}(blue,bold) + {@code C}(aqua,bold) + space + name [+ gold star for the owner]. */
     public static MutableText badgeLine(Text name, boolean owner) {
         try {
             Text safe = name != null ? name : new LiteralText("");
@@ -58,7 +52,6 @@ public final class DontCamBadges {
         }
     }
 
-    /** 2D icon for screens / HUD / tab-list overlays. */
     public static void drawTagIcon(MatrixStack matrices, int x, int y, int size) {
         try {
             if (matrices == null) {
@@ -81,10 +74,6 @@ public final class DontCamBadges {
         }
     }
 
-    /**
-     * World-space icon for the overhead nametag. Draws a {@code size x size} textured
-     * quad on the current label matrix at {@code (x, y)}, then the caller draws text.
-     */
     public static void drawTagIconWorld(MatrixStack matrices, float x, float y, float size) {
         try {
             if (matrices == null) {

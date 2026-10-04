@@ -6,7 +6,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.util.math.MatrixStack;
 
-/** FPS / CPS / keystrokes overlay. Toggled from the Right-Shift menu. */
 public class HudOverlay {
 
     private static final int BG = 0x80000000;
@@ -41,6 +40,9 @@ public class HudOverlay {
                     return;
                 }
             } catch (Throwable t) {
+                return;
+            }
+            if (client.textRenderer == null || client.getWindow() == null) {
                 return;
             }
             if (DontCamFabricMod.config == null) {

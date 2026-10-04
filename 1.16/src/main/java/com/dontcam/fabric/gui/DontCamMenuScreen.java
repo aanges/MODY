@@ -7,7 +7,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.LiteralText;
 
-/** Right-Shift menu: toggle the DontCam modules. */
 public class DontCamMenuScreen extends Screen {
 
     public DontCamMenuScreen() {
@@ -49,7 +48,6 @@ public class DontCamMenuScreen extends Screen {
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         this.renderBackground(matrices);
         TextRenderer tr = this.textRenderer;
-        // tag.png logo next to the header.
         int cx = this.width / 2;
         int titleY = this.height / 2 - 70;
         String header = "\u00A7bDontCam \u00A79Client";

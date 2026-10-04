@@ -11,14 +11,6 @@ import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
-/**
- * Roster sync with a DontCam-aware server.
- *
- * The server (companion plugin) may send JSON on {@code DontCam|Roster}:
- * <pre>{"players":[{"uuid":"...","microsoft":true}]}</pre>
- * Without a companion plugin only the local player's own badge renders —
- * vanilla servers simply ignore the hello packet.
- */
 public class RosterSync {
 
     @SubscribeEvent
@@ -58,7 +50,7 @@ public class RosterSync {
                         continue;
                     }
                     JsonObject player = element.getAsJsonObject();
-                    if (!player.has("uuid")) {
+                    if (player == null || !player.has("uuid")) {
                         continue;
                     }
                     try {
@@ -66,7 +58,7 @@ public class RosterSync {
                         boolean microsoft = player.has("microsoft") && player.get("microsoft").getAsBoolean();
                         DontCamMod.roster.add(uuid);
                         DontCamMod.rosterMicrosoft.put(uuid, microsoft);
-                    } catch (IllegalArgumentException ignored) {
+                    } catch (Exception ignored) {
                     }
                 }
             } catch (Exception ignored) {

@@ -7,12 +7,6 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 
-/**
- * Rounded button with hover glow, used by DontCam screens.
- *
- * <p>1.17.1 has no widget {@code getX/getY} and no narration-supplier constructor,
- * so position is tracked in our own fields.
- */
 public class DontCamButtonWidget extends ButtonWidget {
 
     private static final int BG = 0xCC101018;
@@ -39,10 +33,8 @@ public class DontCamButtonWidget extends ButtonWidget {
         int y = this.dcY;
         int w = this.width;
         int h = this.height;
-        // body
         DrawableHelper.fill(matrices, x + 1, y, x + w - 1, y + h, bg);
         DrawableHelper.fill(matrices, x, y + 1, x + w, y + h - 1, bg);
-        // border
         DrawableHelper.fill(matrices, x + 1, y, x + w - 1, y + 1, border);
         DrawableHelper.fill(matrices, x + 1, y + h - 1, x + w, y + h, border);
         DrawableHelper.fill(matrices, x, y + 1, x + 1, y + h - 1, border);

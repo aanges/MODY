@@ -14,13 +14,6 @@ import net.minecraft.util.Identifier;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
-/**
- * Roster sync with a DontCam-aware server (1.20.1-era networking API:
- * raw Identifier + PacketByteBuf, no CustomPayload records).
- *
- * <p>Client announces itself on join; a companion server plugin may answer with a
- * roster payload. Without one, only the local badge/crown render.
- */
 public class DontCamNetworking {
 
     public static final Identifier HELLO = new Identifier("dontcam", "hello");

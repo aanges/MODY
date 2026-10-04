@@ -17,14 +17,10 @@ import org.lwjgl.opengl.GL11;
 
 import java.util.UUID;
 
-/**
- * Replaces the vanilla nametag with a DontCam one for known players:
- * tag.png icon + "DC" mark in front of the nick, plus a gold star for the owner
- * (owner crown only counts on Microsoft sessions).
- */
 public class NametagRenderer {
 
     private static final ResourceLocation TAG = new ResourceLocation("dontcam", "textures/tag.png");
+    private static final int GOLD = 0xFFFFAA00;
 
     @SubscribeEvent
     public void onRenderSpecials(RenderPlayerEvent.Specials.Pre event) {
@@ -102,14 +98,15 @@ public class NametagRenderer {
                 GlStateManager.enableBlend();
                 GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
 
-                // Backplate
                 Gui.drawRect(-total / 2 - 1, -1, total / 2 + 1, 9, 0x80000000);
 
                 float cx = -total / 2.0F;
-                // tag.png icon first.
                 drawTagIcon(cx, -1.0F, icon);
                 float textX = cx + icon + gap;
                 font.drawString(badge + name + crown, (int) textX, 0, 0xFFFFFFFF);
+                if (owner) {
+                    drawCrown(-5, -8);
+                }
             } finally {
                 try {
                     GlStateManager.depthMask(true);
@@ -139,6 +136,16 @@ public class NametagRenderer {
             buffer.pos(x + size, y, 0.0D).tex(1.0D, 0.0D).endVertex();
             buffer.pos(x, y, 0.0D).tex(0.0D, 0.0D).endVertex();
             tessellator.draw();
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void drawCrown(int x, int y) {
+        try {
+            Gui.drawRect(x, y + 3, x + 10, y + 5, GOLD);
+            Gui.drawRect(x, y, x + 2, y + 3, GOLD);
+            Gui.drawRect(x + 4, y - 1, x + 6, y + 3, GOLD);
+            Gui.drawRect(x + 8, y, x + 10, y + 3, GOLD);
         } catch (Exception ignored) {
         }
     }

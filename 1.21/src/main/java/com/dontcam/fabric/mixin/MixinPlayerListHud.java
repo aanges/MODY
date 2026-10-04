@@ -31,26 +31,61 @@ public abstract class MixinPlayerListHud {
     @Inject(method = "getPlayerName", at = @At("RETURN"), cancellable = true)
     private void dontcam$badge(PlayerListEntry entry, CallbackInfoReturnable<Text> cir) {
         try {
-            if (cir == null || entry == null || entry.getProfile() == null) {
+            if (cir == null) {
                 return;
             }
-            // Null-safe config guard (1.21 has no badges toggle; never NPE).
-            if (DontCamFabricMod.config == null) {
+            if (DontCamFabricMod.config != null && !DontCamFabricMod.config.badges) {
                 return;
             }
-            UUID uuid = entry.getProfile().getId();
-            if (uuid == null || !DontCamFabricMod.isDontCam(uuid)) {
+            if (entry == null) {
                 return;
             }
-            Text current = cir.getReturnValue();
-            if (current == null) {
+            UUID uuid;
+            try {
+                if (entry.getProfile() == null) {
+                    return;
+                }
+                uuid = entry.getProfile().getId();
+            } catch (Throwable t) {
                 return;
             }
-            Text patched = DontCamBadges.badgeLine(current, DontCamFabricMod.isOwner(uuid));
-            if (patched != null) {
+            if (uuid == null) {
+                return;
+            }
+            boolean isDc;
+            boolean owner;
+            try {
+                isDc = DontCamFabricMod.isDontCam(uuid);
+                owner = DontCamFabricMod.isOwner(uuid);
+            } catch (Throwable t) {
+                return;
+            }
+            if (!isDc) {
+                return;
+            }
+            Text original;
+            try {
+                original = cir.getReturnValue();
+            } catch (Throwable t) {
+                return;
+            }
+            if (original == null) {
+                return;
+            }
+            Text patched;
+            try {
+                patched = DontCamBadges.badgeLine(original, owner);
+            } catch (Throwable t) {
+                return;
+            }
+            if (patched == null) {
+                return;
+            }
+            try {
                 cir.setReturnValue(patched);
+            } catch (Throwable ignored) {
             }
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
         }
     }
 
@@ -61,17 +96,27 @@ public abstract class MixinPlayerListHud {
             if (context == null) {
                 return;
             }
-            if (DontCamFabricMod.config == null) {
+            if (DontCamFabricMod.config != null && !DontCamFabricMod.config.badges) {
                 return;
             }
-            MinecraftClient client = MinecraftClient.getInstance();
+            MinecraftClient client;
+            try {
+                client = MinecraftClient.getInstance();
+            } catch (Throwable t) {
+                return;
+            }
             if (client == null || client.player == null || client.player.networkHandler == null) {
                 return;
             }
-            List<PlayerListEntry> entries = client.player.networkHandler.getPlayerList().stream()
-                    .limit(80)
-                    .toList();
-            if (entries.isEmpty()) {
+            List<PlayerListEntry> entries;
+            try {
+                entries = client.player.networkHandler.getPlayerList().stream()
+                        .limit(80)
+                        .toList();
+            } catch (Throwable t) {
+                return;
+            }
+            if (entries == null || entries.isEmpty()) {
                 return;
             }
             // Vanilla lays the tab list out in columns of up to 20 rows. Mirror that
@@ -83,21 +128,24 @@ public abstract class MixinPlayerListHud {
             int x0 = scaledWindowWidth / 2 - totalW / 2;
             int y0 = 20;
             for (int idx = 0; idx < entries.size(); idx++) {
-                PlayerListEntry entry = entries.get(idx);
-                if (entry == null || entry.getProfile() == null) {
-                    continue;
+                try {
+                    PlayerListEntry entry = entries.get(idx);
+                    if (entry == null || entry.getProfile() == null) {
+                        continue;
+                    }
+                    UUID uuid = entry.getProfile().getId();
+                    if (!DontCamFabricMod.isDontCam(uuid)) {
+                        continue;
+                    }
+                    int col = idx / 20;
+                    int row = idx % 20;
+                    int x = x0 + col * colWidth + 4;
+                    int y = y0 + row * 9;
+                    DontCamBadges.drawTagIcon(context, x, y - 1, 8);
+                } catch (Throwable ignored) {
                 }
-                UUID uuid = entry.getProfile().getId();
-                if (!DontCamFabricMod.isDontCam(uuid)) {
-                    continue;
-                }
-                int col = idx / 20;
-                int row = idx % 20;
-                int x = x0 + col * colWidth + 4;
-                int y = y0 + row * 9;
-                DontCamBadges.drawTagIcon(context, x, y - 1, 8);
             }
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
         }
     }
 }

@@ -18,12 +18,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * Lunar-style main menu: full dark background (hides vanilla panorama / logo /
- * splash), banner with tag.png, vertical centered layout:
- * [Singleplayer][Multiplayer] in one row, then Minecraft Settings,
- * DontCam Mods, Quit. Footer shows game + mod version.
- */
 @Mixin(TitleScreen.class)
 public abstract class MixinTitleScreen extends Screen {
 

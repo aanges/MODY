@@ -33,25 +33,42 @@ public final class DontCamBadges {
 
     /** {@code D}(blue,bold) + {@code C}(aqua,bold) + space + name [+ gold star for the owner]. */
     public static MutableText badgeLine(Text name, boolean owner) {
-        Text safe = name == null ? Text.empty() : name;
-        MutableText line = Text.literal("D").formatted(Formatting.BLUE, Formatting.BOLD)
-                .append(Text.literal("C").formatted(Formatting.AQUA, Formatting.BOLD))
-                .append(Text.literal(" "))
-                .append(safe.copy());
-        if (owner) {
-            line.append(Text.literal(" \u2605").formatted(Formatting.GOLD, Formatting.BOLD));
+        try {
+            Text safe = name != null ? name : Text.literal("");
+            Text copy;
+            try {
+                copy = safe.copy();
+            } catch (Throwable t) {
+                copy = Text.literal("");
+            }
+            if (copy == null) {
+                copy = Text.literal("");
+            }
+            MutableText line = Text.literal("D").formatted(Formatting.BLUE, Formatting.BOLD)
+                    .append(Text.literal("C").formatted(Formatting.AQUA, Formatting.BOLD))
+                    .append(Text.literal(" "))
+                    .append(copy);
+            if (owner) {
+                line.append(Text.literal(" \u2605").formatted(Formatting.GOLD, Formatting.BOLD));
+            }
+            return line;
+        } catch (Throwable t) {
+            try {
+                return Text.literal("DC");
+            } catch (Throwable t2) {
+                return null;
+            }
         }
-        return line;
     }
 
     /** 2D icon for screens / HUD / tab-list overlays. */
     public static void drawTagIcon(DrawContext context, int x, int y, int size) {
-        if (context == null) {
-            return;
-        }
         try {
+            if (context == null) {
+                return;
+            }
             context.drawTexture(TAG_TEXTURE, x, y, 0, 0, size, size, size, size);
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
         }
     }
 
@@ -60,11 +77,19 @@ public final class DontCamBadges {
      * quad on the current label matrix at {@code (x, y)}, then the caller draws text.
      */
     public static void drawTagIconWorld(MatrixStack matrices, float x, float y, float size) {
-        if (matrices == null || matrices.peek() == null) {
-            return;
-        }
         try {
-            MinecraftClient client = MinecraftClient.getInstance();
+            if (matrices == null || matrices.peek() == null) {
+                return;
+            }
+            if (matrices.peek().getPositionMatrix() == null) {
+                return;
+            }
+            MinecraftClient client;
+            try {
+                client = MinecraftClient.getInstance();
+            } catch (Throwable t) {
+                return;
+            }
             if (client == null || client.getTextureManager() == null) {
                 return;
             }
@@ -72,14 +97,28 @@ public final class DontCamBadges {
             RenderSystem.setShader(GameRenderer::getPositionTexProgram);
             RenderSystem.setShaderTexture(0, TAG_TEXTURE);
             Matrix4f matrix = matrices.peek().getPositionMatrix();
-            Tessellator tessellator = Tessellator.getInstance();
+            if (matrix == null) {
+                return;
+            }
+            Tessellator tessellator;
+            try {
+                tessellator = Tessellator.getInstance();
+            } catch (Throwable t) {
+                return;
+            }
+            if (tessellator == null) {
+                return;
+            }
             BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
+            if (buffer == null) {
+                return;
+            }
             buffer.vertex(matrix, x, y + size, 0.0f).texture(0.0f, 1.0f);
             buffer.vertex(matrix, x + size, y + size, 0.0f).texture(1.0f, 1.0f);
             buffer.vertex(matrix, x + size, y, 0.0f).texture(1.0f, 0.0f);
             buffer.vertex(matrix, x, y, 0.0f).texture(0.0f, 0.0f);
             BufferRenderer.drawWithGlobalProgram(buffer.end());
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
         }
     }
 }

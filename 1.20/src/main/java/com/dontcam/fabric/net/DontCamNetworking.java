@@ -27,49 +27,89 @@ public class DontCamNetworking {
     public static final Identifier ROSTER = new Identifier("dontcam", "roster");
 
     public static void init() {
-        ClientPlayNetworking.registerGlobalReceiver(ROSTER, (client, handler, buf, responseSender) -> {
-            try {
-                if (client == null || buf == null) {
-                    return;
+        try {
+            ClientPlayNetworking.registerGlobalReceiver(ROSTER, (client, handler, buf, responseSender) -> {
+                try {
+                    if (client == null || buf == null) {
+                        return;
+                    }
+                    byte[] bytes;
+                    try {
+                        bytes = new byte[buf.readableBytes()];
+                        buf.readBytes(bytes);
+                    } catch (Throwable t) {
+                        return;
+                    }
+                    String json;
+                    try {
+                        json = new String(bytes, StandardCharsets.UTF_8);
+                    } catch (Throwable t) {
+                        return;
+                    }
+                    if (json == null || json.isEmpty()) {
+                        return;
+                    }
+                    final String rosterJson = json;
+                    try {
+                        client.execute(() -> applyRoster(rosterJson));
+                    } catch (Throwable ignored) {
+                    }
+                } catch (Throwable ignored) {
                 }
-                byte[] bytes = new byte[buf.readableBytes()];
-                buf.readBytes(bytes);
-                String json = new String(bytes, StandardCharsets.UTF_8);
-                client.execute(() -> applyRoster(json));
-            } catch (Exception ignored) {
-            }
-        });
+            });
+        } catch (Throwable ignored) {
+        }
 
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
-            try {
-                if (handler == null || client == null) {
-                    return;
+        try {
+            ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+                try {
+                    if (handler == null || client == null) {
+                        return;
+                    }
+                    boolean canSend;
+                    try {
+                        canSend = ClientPlayNetworking.canSend(HELLO);
+                    } catch (Throwable t) {
+                        return;
+                    }
+                    if (!canSend) {
+                        return;
+                    }
+                    String uuid = DontCamFabricMod.localUuid != null
+                            ? DontCamFabricMod.localUuid.toString().replace("-", "")
+                            : "";
+                    String hello = "{\"uuid\":\"" + uuid + "\",\"microsoft\":" + DontCamFabricMod.localMicrosoft
+                            + ",\"mod\":\"" + DontCamFabricMod.VERSION + "\"}";
+                    PacketByteBuf buf;
+                    try {
+                        buf = new PacketByteBuf(Unpooled.buffer());
+                        buf.writeString(hello);
+                    } catch (Throwable t) {
+                        return;
+                    }
+                    try {
+                        ClientPlayNetworking.send(HELLO, buf);
+                    } catch (Throwable ignored) {
+                    }
+                } catch (Throwable ignored) {
                 }
-                if (!ClientPlayNetworking.canSend(HELLO)) {
-                    return;
-                }
-                String uuid = DontCamFabricMod.localUuid != null
-                        ? DontCamFabricMod.localUuid.toString().replace("-", "")
-                        : "";
-                String hello = "{\"uuid\":\"" + uuid + "\",\"microsoft\":" + DontCamFabricMod.localMicrosoft
-                        + ",\"mod\":\"" + DontCamFabricMod.VERSION + "\"}";
-                PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-                buf.writeString(hello);
-                ClientPlayNetworking.send(HELLO, buf);
-            } catch (Exception ignored) {
-            }
-        });
+            });
+        } catch (Throwable ignored) {
+        }
     }
 
     static void applyRoster(String json) {
-        if (json == null || json.isEmpty()) {
-            return;
-        }
-        if (DontCamFabricMod.roster == null || DontCamFabricMod.rosterMicrosoft == null) {
-            return;
-        }
         try {
+            if (json == null || json.isEmpty()) {
+                return;
+            }
+            if (DontCamFabricMod.roster == null || DontCamFabricMod.rosterMicrosoft == null) {
+                return;
+            }
             JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+            if (root == null) {
+                return;
+            }
             JsonArray players = root.getAsJsonArray("players");
             if (players == null) {
                 return;
@@ -77,7 +117,7 @@ public class DontCamNetworking {
             DontCamFabricMod.roster.clear();
             DontCamFabricMod.rosterMicrosoft.clear();
             for (JsonElement element : players) {
-                if (!element.isJsonObject()) {
+                if (element == null || !element.isJsonObject()) {
                     continue;
                 }
                 JsonObject player = element.getAsJsonObject();
@@ -90,9 +130,10 @@ public class DontCamNetworking {
                     DontCamFabricMod.roster.add(uuid);
                     DontCamFabricMod.rosterMicrosoft.put(uuid, microsoft);
                 } catch (IllegalArgumentException ignored) {
+                } catch (Throwable ignored) {
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
         }
     }
 }

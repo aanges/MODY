@@ -33,6 +33,9 @@ public abstract class MixinTitleScreen extends Screen {
     @Inject(method = "init", at = @At("TAIL"))
     private void dontcam$replaceButtons(CallbackInfo ci) {
         try {
+            if (ci == null) {
+                return;
+            }
             this.clearChildren();
             int cx = this.width / 2;
             int y = this.height / 2 + 8;
@@ -93,7 +96,7 @@ public abstract class MixinTitleScreen extends Screen {
     @Inject(method = "render", at = @At("TAIL"))
     private void dontcam$banner(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         try {
-            if (this.textRenderer == null) {
+            if (matrices == null || this.textRenderer == null) {
                 return;
             }
             TextRenderer tr = this.textRenderer;

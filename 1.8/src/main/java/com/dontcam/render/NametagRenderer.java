@@ -7,24 +7,17 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
 
 import java.util.UUID;
 
-/**
- * Replaces the vanilla nametag with a DontCam one for known players:
- * a merged "DC" mark in front of the nick, plus a gold crown for the owner
- * (owner crown only counts on Microsoft sessions).
- */
 public class NametagRenderer {
 
-    private static final ResourceLocation TAG = new ResourceLocation("dontcam", "textures/tag.png");
-    private static final int gatheringBlue = 0xFF5555FF;
-    private static final int gatheringCyan = 0xFF55FFFF;
-    private static final int gatheringGold = 0xFFFFAA00;
+    private static final int BLUE = 0xFF5555FF;
+    private static final int CYAN = 0xFF55FFFF;
+    private static final int GOLD = 0xFFFFAA00;
 
     @SubscribeEvent
     public void onRenderSpecials(RenderPlayerEvent.Specials.Pre event) {
@@ -70,9 +63,18 @@ public class NametagRenderer {
             } catch (Exception ignored) {
                 name = "";
             }
+            String badge;
+            String crown;
+            try {
+                badge = DontCamMod.badgePrefix(owner);
+                crown = DontCamMod.crownSuffix(owner);
+            } catch (Exception ignored) {
+                badge = "";
+                crown = "";
+            }
             int nameW;
             try {
-                nameW = font.getStringWidth(name);
+                nameW = font.getStringWidth(badge + name + crown);
             } catch (Exception ignored) {
                 return;
             }
@@ -93,15 +95,12 @@ public class NametagRenderer {
                 GlStateManager.enableBlend();
                 GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
 
-                // Backplate
                 Gui.drawRect(-total / 2 - 1, -1, total / 2 + 1, 9, 0x80000000);
 
                 int cx = -total / 2 + 1;
-                // tag.png icon would need GL quad here; keep merged DC mark (no texture bind on this path).
-                // Merged "DC" mark: cyan C with a blue D overlapping it by 1px.
-                font.drawString("C", cx, 0, gatheringCyan);
-                font.drawString("D", cx - 1, 0, gatheringBlue);
-                font.drawString(name, cx + badgeW, 0, 0xFFFFFFFF);
+                font.drawString("C", cx, 0, CYAN);
+                font.drawString("D", cx - 1, 0, BLUE);
+                font.drawString(badge + name + crown, cx + badgeW, 0, 0xFFFFFFFF);
 
                 if (owner) {
                     drawCrown(-5, -8);
@@ -120,15 +119,12 @@ public class NametagRenderer {
         }
     }
 
-    /** Tiny gold crown centered at (x, y). */
     private void drawCrown(int x, int y) {
         try {
-            // base bar
-            Gui.drawRect(x, y + 3, x + 10, y + 5, gatheringGold);
-            // spikes
-            Gui.drawRect(x, y, x + 2, y + 3, gatheringGold);
-            Gui.drawRect(x + 4, y - 1, x + 6, y + 3, gatheringGold);
-            Gui.drawRect(x + 8, y, x + 10, y + 3, gatheringGold);
+            Gui.drawRect(x, y + 3, x + 10, y + 5, GOLD);
+            Gui.drawRect(x, y, x + 2, y + 3, GOLD);
+            Gui.drawRect(x + 4, y - 1, x + 6, y + 3, GOLD);
+            Gui.drawRect(x + 8, y, x + 10, y + 3, GOLD);
         } catch (Exception ignored) {
         }
     }

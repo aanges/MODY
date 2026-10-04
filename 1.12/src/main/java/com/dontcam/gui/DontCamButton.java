@@ -5,10 +5,6 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
 
-/**
- * Lunar-style button: dark body, blue border, hover glow.
- * Rounded corners approximated with cut 1px corners.
- */
 public class DontCamButton extends GuiButton {
 
     private static final int BG = 0xCC101018;

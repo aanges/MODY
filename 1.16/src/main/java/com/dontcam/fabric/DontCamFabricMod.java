@@ -23,16 +23,12 @@ public class DontCamFabricMod implements ClientModInitializer {
 
     public static final String MODID = "dontcam";
     public static final String VERSION = "0.1.0";
-
-    /** Owner crown UUID. Crown renders only for Microsoft-authenticated sessions. */
     public static final UUID OWNER_UUID = UUID.fromString("76b1ef92-f047-428a-a068-ccd4d1eb4863");
 
     public static KeyBinding openMenu;
     public static DontCamConfig config;
 
-    /** UUIDs confirmed to run DontCam (received via roster channel). */
     public static final Set<UUID> roster = Collections.synchronizedSet(new HashSet<>());
-    /** Per-UUID Microsoft flag from the roster (owner crown needs microsoft=true). */
     public static final Map<UUID, Boolean> rosterMicrosoft = new ConcurrentHashMap<>();
 
     public static boolean localMicrosoft = false;
@@ -60,7 +56,10 @@ public class DontCamFabricMod implements ClientModInitializer {
         ClickTracker.init();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player == null || client.currentScreen != null) {
+            if (client == null || client.player == null || client.currentScreen != null) {
+                return;
+            }
+            if (openMenu == null) {
                 return;
             }
             while (openMenu.wasPressed()) {
@@ -69,7 +68,6 @@ public class DontCamFabricMod implements ClientModInitializer {
         });
     }
 
-    /** True when the given player is known to run DontCam (self or roster). */
     public static boolean isDontCam(UUID uuid) {
         if (uuid == null) {
             return false;
@@ -80,7 +78,6 @@ public class DontCamFabricMod implements ClientModInitializer {
         return roster.contains(uuid);
     }
 
-    /** Owner crown: matching UUID AND a Microsoft session (offline never counts). */
     public static boolean isOwner(UUID uuid) {
         if (uuid == null || !OWNER_UUID.equals(uuid)) {
             return false;

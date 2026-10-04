@@ -18,16 +18,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * Lunar-style main menu: full dark background (hides vanilla panorama / logo /
- * splash), banner with tag.png, vertical centered layout:
- * [Singleplayer][Multiplayer] in one row, then Minecraft Settings,
- * DontCam Mods, Quit. Footer shows game + mod version. Works on all resolutions
- * (width/height relative, cx = width/2).
- *
- * <p>1.16.5 has no {@code Screen.clearChildren()} — vanilla buttons are removed
- * via the {@code buttons} + {@code children} lists.
- */
 @Mixin(TitleScreen.class)
 public abstract class MixinTitleScreen extends Screen {
 
@@ -104,14 +94,11 @@ public abstract class MixinTitleScreen extends Screen {
             }
             TextRenderer tr = this.textRenderer;
             int cx = this.width / 2;
-            // Full opaque background hides vanilla panorama / dirt / logo / splash.
             DrawableHelper.fill(matrices, 0, 0, this.width, this.height, 0xFF0A0A12);
             DrawableHelper.fill(matrices, 0, 0, this.width, this.height / 2, 0xFF141422);
-            // Banner covering the vanilla logo + splash zone.
             DrawableHelper.fill(matrices, cx - 230, 18, cx + 230, 92, 0xCC0A0A12);
             DrawableHelper.fill(matrices, cx - 230, 18, cx + 230, 19, 0xFF2E9BFF);
             DrawableHelper.fill(matrices, cx - 230, 91, cx + 230, 92, 0xFF2E9BFF);
-            // tag.png logo left of the title.
             DontCamBadges.drawTagIcon(matrices, cx - 118, 30, 24);
             String title = "DontCam Client";
             tr.drawWithShadow(matrices, title, cx + 12 - tr.getWidth(title) / 2.0f, 34, 0xFFFFFFFF);
@@ -128,7 +115,6 @@ public abstract class MixinTitleScreen extends Screen {
                 ver = "v0.1.0  \u2022  1.16.5";
             }
             tr.drawWithShadow(matrices, ver, cx + 12 - tr.getWidth(ver) / 2.0f, 68, 0xFF64748B);
-            // Footer: game + mod version.
             String left = "Minecraft 1.16.5";
             try {
                 if (this.client != null && this.client.getGameVersion() != null) {

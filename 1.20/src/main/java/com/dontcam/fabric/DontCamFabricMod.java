@@ -60,7 +60,10 @@ public class DontCamFabricMod implements ClientModInitializer {
         ClickTracker.init();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player == null || client.currentScreen != null) {
+            if (client == null || client.player == null || client.currentScreen != null) {
+                return;
+            }
+            if (openMenu == null) {
                 return;
             }
             while (openMenu.wasPressed()) {

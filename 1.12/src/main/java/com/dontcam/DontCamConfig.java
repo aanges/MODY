@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 
-/** Simple JSON toggles stored in config/dontcam.json */
 public class DontCamConfig {
 
     public boolean fps = true;
@@ -18,37 +17,49 @@ public class DontCamConfig {
     private final File file;
 
     public DontCamConfig(File configDir) {
-        if (!configDir.exists()) {
-            configDir.mkdirs();
+        File dir = configDir;
+        if (dir == null) {
+            dir = new File("config");
         }
-        this.file = new File(configDir, "dontcam.json");
+        try {
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+        } catch (Exception ignored) {
+        }
+        this.file = new File(dir, "dontcam.json");
         load();
     }
 
     public void load() {
-        if (!file.exists()) {
-            save();
-            return;
-        }
         try {
+            if (file == null || !file.exists()) {
+                save();
+                return;
+            }
             FileReader reader = new FileReader(file);
-            JsonObject json;
             try {
-                json = new JsonParser().parse(reader).getAsJsonObject();
+                JsonObject json = new JsonParser().parse(reader).getAsJsonObject();
+                if (json == null) {
+                    return;
+                }
+                if (json.has("fps")) {
+                    fps = json.get("fps").getAsBoolean();
+                }
+                if (json.has("cps")) {
+                    cps = json.get("cps").getAsBoolean();
+                }
+                if (json.has("keystrokes")) {
+                    keystrokes = json.get("keystrokes").getAsBoolean();
+                }
+                if (json.has("badges")) {
+                    badges = json.get("badges").getAsBoolean();
+                }
             } finally {
-                reader.close();
-            }
-            if (json.has("fps")) {
-                fps = json.get("fps").getAsBoolean();
-            }
-            if (json.has("cps")) {
-                cps = json.get("cps").getAsBoolean();
-            }
-            if (json.has("keystrokes")) {
-                keystrokes = json.get("keystrokes").getAsBoolean();
-            }
-            if (json.has("badges")) {
-                badges = json.get("badges").getAsBoolean();
+                try {
+                    reader.close();
+                } catch (Exception ignored) {
+                }
             }
         } catch (Exception ignored) {
         }
@@ -56,6 +67,9 @@ public class DontCamConfig {
 
     public void save() {
         try {
+            if (file == null) {
+                return;
+            }
             JsonObject json = new JsonObject();
             json.addProperty("fps", fps);
             json.addProperty("cps", cps);
@@ -65,7 +79,10 @@ public class DontCamConfig {
             try {
                 writer.write(json.toString());
             } finally {
-                writer.close();
+                try {
+                    writer.close();
+                } catch (Exception ignored) {
+                }
             }
         } catch (Exception ignored) {
         }

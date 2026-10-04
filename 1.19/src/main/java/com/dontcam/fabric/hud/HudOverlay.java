@@ -111,6 +111,9 @@ public class HudOverlay {
             if (client == null || matrices == null || client.textRenderer == null) {
                 return;
             }
+            if (label == null) {
+                return;
+            }
             DrawableHelper.fill(matrices, x, y, x + w, y + h, pressed ? BG_PRESSED : BG);
             int color = pressed ? TEXT_DARK : TEXT_DIM;
             int tw = client.textRenderer.getWidth(label);

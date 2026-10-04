@@ -6,7 +6,6 @@ import net.minecraft.client.MinecraftClient;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-/** Rolling 1-second left/right click counters for the CPS HUD. */
 public class ClickTracker {
 
     private static final long WINDOW_NS = 1000000000L;
@@ -44,7 +43,6 @@ public class ClickTracker {
                 } catch (Throwable t) {
                     return;
                 }
-                // Edge-triggered: count the press, not the hold.
                 if (attack && !instance.lastAttack) {
                     synchronized (instance.left) {
                         instance.left.addLast(now);
@@ -90,8 +88,6 @@ public class ClickTracker {
         }
     }
 
-    /** Called by the HUD to keep mouse-held state out of the counters. */
     public static void onClientTick(MinecraftClient client) {
-        // Counters are edge-triggered in init(); nothing extra needed here.
     }
 }

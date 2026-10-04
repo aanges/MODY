@@ -18,13 +18,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Tab-list badges: tag.png icon + "DC" before the nick, gold star for the owner.
- *
- * <p>Text comes from {@code getPlayerName} (vanilla pipeline); the icon is overlaid
- * in {@code render} TAIL with best-effort column layout. All icon work is wrapped
- * so a layout mismatch can never crash the tab list.
- */
 @Mixin(PlayerListHud.class)
 public abstract class MixinPlayerListHud {
 
@@ -119,8 +112,6 @@ public abstract class MixinPlayerListHud {
             if (entries == null || entries.isEmpty()) {
                 return;
             }
-            // Vanilla lays the tab list out in columns of up to 20 rows. Mirror that
-            // loosely: column width 300px capped, rows of 20.
             int cols = (entries.size() + 19) / 20;
             cols = Math.max(1, Math.min(4, cols));
             int colWidth = Math.min(300, scaledWindowWidth / Math.max(1, cols) - 40);

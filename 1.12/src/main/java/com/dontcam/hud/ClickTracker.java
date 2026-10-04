@@ -6,7 +6,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-/** Rolling 1-second left/right click counters for the CPS HUD. */
 public class ClickTracker {
 
     private static final long WINDOW_NS = 1000000000L;
@@ -14,9 +13,19 @@ public class ClickTracker {
     private final Deque<Long> left = new ArrayDeque<Long>();
     private final Deque<Long> right = new ArrayDeque<Long>();
 
+    private static ClickTracker instance;
+
+    public ClickTracker() {
+        instance = this;
+    }
+
+    public static ClickTracker get() {
+        return instance;
+    }
+
     @SubscribeEvent
     public void onMouse(MouseEvent event) {
-        if (!event.isButtonstate()) {
+        if (event == null || !event.isButtonstate()) {
             return;
         }
         long now = System.nanoTime();
@@ -46,15 +55,5 @@ public class ClickTracker {
 
     public int rightCps() {
         return prune(right, System.nanoTime());
-    }
-
-    private static ClickTracker instance;
-
-    public static ClickTracker get() {
-        return instance;
-    }
-
-    public ClickTracker() {
-        instance = this;
     }
 }

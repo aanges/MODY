@@ -31,6 +31,9 @@ public abstract class MixinTitleScreen extends Screen {
     @Inject(method = "init", at = @At("TAIL"))
     private void dontcam$replaceButtons(CallbackInfo ci) {
         try {
+            if (ci == null) {
+                return;
+            }
             this.clearChildren();
             int cx = this.width / 2;
             int y = this.height / 2 + 8;

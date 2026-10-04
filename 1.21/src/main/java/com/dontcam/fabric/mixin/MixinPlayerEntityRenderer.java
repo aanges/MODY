@@ -11,7 +11,6 @@ import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,8 +21,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.UUID;
 
 /**
- * Custom nametag for DontCam players: "DC" badge before the nick,
+ * Custom nametag for DontCam players: tag.png icon + "DC" badge before the nick,
  * gold star for the owner (Microsoft sessions only).
+ *
+ * <p>1.21.1 vanilla signature HAS tickDelta:
+ * {@code renderLabelIfPresent(T, Text, MatrixStack, VertexConsumerProvider, int, float)}.
  */
 @Mixin(PlayerEntityRenderer.class)
 public abstract class MixinPlayerEntityRenderer {
@@ -37,37 +39,43 @@ public abstract class MixinPlayerEntityRenderer {
                                VertexConsumerProvider vertexConsumers, int light, float tickDelta,
                                CallbackInfo ci) {
         try {
-            if (player == null || text == null || matrices == null || vertexConsumers == null || ci == null) {
+            // config == null means "not loaded yet" -> treat badges as ON, never NPE.
+            if (DontCamFabricMod.config != null && !DontCamFabricMod.config.badges) {
                 return;
             }
-            // 1.21 has no badges toggle; keep a null-safe config guard so a
-            // not-yet-loaded config can never NPE the nametag pipeline.
-            if (DontCamFabricMod.config == null) {
+            if (player == null || text == null || matrices == null || vertexConsumers == null || ci == null) {
                 return;
             }
             UUID uuid;
             try {
                 uuid = player.getUuid();
-            } catch (Exception ignored) {
+            } catch (Throwable t) {
                 return;
             }
             if (uuid == null || !DontCamFabricMod.isDontCam(uuid)) {
                 return;
             }
-            ci.cancel();
-
             boolean owner;
             try {
                 owner = DontCamFabricMod.isOwner(uuid);
-            } catch (Exception ignored) {
+            } catch (Throwable t) {
                 owner = false;
             }
-            MutableText line = DontCamBadges.badgeLine(text, owner);
+            MutableText line;
+            try {
+                line = DontCamBadges.badgeLine(text, owner);
+            } catch (Throwable t) {
+                return;
+            }
             if (line == null) {
                 return;
             }
-
-            MinecraftClient client = MinecraftClient.getInstance();
+            MinecraftClient client;
+            try {
+                client = MinecraftClient.getInstance();
+            } catch (Throwable t) {
+                return;
+            }
             if (client == null) {
                 return;
             }
@@ -78,21 +86,39 @@ public abstract class MixinPlayerEntityRenderer {
             if (this.dispatcher == null || this.dispatcher.getRotation() == null) {
                 return;
             }
-            if (matrices.peek() == null) {
+            if (matrices.peek() == null || matrices.peek().getPositionMatrix() == null) {
                 return;
             }
             float icon = 8.0f;
             float gap = 2.0f;
-            float width = -(textRenderer.getWidth(line) + icon + gap) / 2.0f;
-
-            matrices.push();
+            float width;
             try {
-                matrices.translate(0.0, player.getHeight() + 0.5, 0.0);
+                width = -(textRenderer.getWidth(line) + icon + gap) / 2.0f;
+            } catch (Throwable t) {
+                return;
+            }
+            try {
+                matrices.push();
+            } catch (Throwable t) {
+                return;
+            }
+            try {
+                float height;
+                try {
+                    height = player.getHeight();
+                } catch (Throwable t) {
+                    height = 1.8f;
+                }
+                matrices.translate(0.0, height + 0.5, 0.0);
                 matrices.multiply(this.dispatcher.getRotation());
                 matrices.scale(-0.025f, -0.025f, 0.025f);
+                if (matrices.peek() == null || matrices.peek().getPositionMatrix() == null) {
+                    return;
+                }
+                ci.cancel();
                 // Icon first, then text shifted right so they sit side by side.
                 DontCamBadges.drawTagIconWorld(matrices, width, -1.0f, icon);
-                if (matrices.peek() == null) {
+                if (matrices.peek() == null || matrices.peek().getPositionMatrix() == null) {
                     return;
                 }
                 float textX = width + icon + gap;
@@ -100,9 +126,12 @@ public abstract class MixinPlayerEntityRenderer {
                         matrices.peek().getPositionMatrix(), vertexConsumers,
                         TextRenderer.TextLayerType.NORMAL, 0x80000000, light);
             } finally {
-                matrices.pop();
+                try {
+                    matrices.pop();
+                } catch (Throwable ignored) {
+                }
             }
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
         }
     }
 }

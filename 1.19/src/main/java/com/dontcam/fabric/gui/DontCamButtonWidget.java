@@ -6,7 +6,7 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 
-/** Rounded button with hover glow, used by DontCam screens. */
+/** Dark Lunar-style button with hover glow, used by DontCam screens. */
 public class DontCamButtonWidget extends ButtonWidget {
 
     private static final int BG = 0xCC101018;
@@ -20,6 +20,9 @@ public class DontCamButtonWidget extends ButtonWidget {
 
     @Override
     public void renderButton(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+        if (matrices == null) {
+            return;
+        }
         MinecraftClient client = MinecraftClient.getInstance();
         boolean hovered = this.isHovered();
         int bg = hovered ? BG_HOVER : BG;
@@ -38,6 +41,9 @@ public class DontCamButtonWidget extends ButtonWidget {
         DrawableHelper.fill(matrices, x + w - 1, y + 1, x + w, y + h - 1, border);
         if (hovered) {
             DrawableHelper.fill(matrices, x + 1, y + 1, x + w - 1, y + 3, 0x33FFFFFF);
+        }
+        if (client == null || client.textRenderer == null || this.getMessage() == null) {
+            return;
         }
         int color = this.active ? 0xFFFFFFFF : 0xFFA0A0A0;
         int tw = client.textRenderer.getWidth(this.getMessage());
