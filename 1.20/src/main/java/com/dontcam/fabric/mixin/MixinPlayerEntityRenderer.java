@@ -26,7 +26,7 @@ public abstract class MixinPlayerEntityRenderer {
 
     @Inject(method = "renderLabelIfPresent", at = @At("HEAD"), cancellable = true)
     private void dontcam$label(AbstractClientPlayerEntity player, Text text, MatrixStack matrices,
-                               VertexConsumerProvider vertexConsumers, int light, float tickDelta,
+                               VertexConsumerProvider vertexConsumers, int light,
                                CallbackInfo ci) {
         try {
             if (player == null || text == null || matrices == null || vertexConsumers == null || ci == null) {
