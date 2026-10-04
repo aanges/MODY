@@ -59,7 +59,6 @@ public class TabListSwap {
             if (mc == null || mc.ingameGUI == null) {
                 return;
             }
-        try {
             if (overlayField == null) {
                 overlayField = findOverlayField();
             }
