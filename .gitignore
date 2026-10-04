@@ -8,6 +8,8 @@ out/
 # Large local artifacts (rebuild with gradlew build / remapJar)
 *.jar
 !src/**/tag.png
+# ...but the Gradle wrapper jar IS required for reproducible builds
+!gradle/wrapper/gradle-wrapper.jar
 
 # IDE
 .idea/
