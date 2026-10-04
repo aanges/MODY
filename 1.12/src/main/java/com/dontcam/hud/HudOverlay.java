@@ -1,6 +1,7 @@
 package com.dontcam.hud;
 
 import com.dontcam.DontCamMod;
+import com.dontcam.spotify.SpotifyManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
@@ -38,6 +39,7 @@ public class HudOverlay {
             if (DontCamMod.config.keystrokes) {
                 drawKeystrokes(mc, event.getResolution());
             }
+            drawSpotify(mc);
         } catch (Exception ignored) {
         }
     }
@@ -114,6 +116,72 @@ public class HudOverlay {
             int half = (totalW - gap) / 2;
             key(mc, x0, my, half, 12, "LMB", lmb);
             key(mc, x0 + half + gap, my, totalW - half - gap, 12, "RMB", rmb);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private static String fmtTime(long ms) {
+        try {
+            if (ms < 0) {
+                ms = 0;
+            }
+            long s = ms / 1000L;
+            long m = s / 60L;
+            long sec = s % 60L;
+            return m + ":" + (sec < 10 ? "0" + sec : Long.toString(sec));
+        } catch (Exception ignored) {
+            return "0:00";
+        }
+    }
+
+    private void drawSpotify(Minecraft mc) {
+        try {
+            if (mc == null || mc.fontRenderer == null) {
+                return;
+            }
+            if (DontCamMod.config == null || !DontCamMod.config.spotifyEnabled) {
+                return;
+            }
+            int x = DontCamMod.config.spotifyX;
+            int y = DontCamMod.config.spotifyY;
+            float scale = DontCamMod.config.spotifyScale;
+            if (scale <= 0.0f) {
+                scale = 1.0f;
+            }
+            SpotifyManager.Track t = SpotifyManager.snapshot();
+            if (t == null) {
+                String text = "Spotify: brak utworu";
+                int w = mc.fontRenderer.getStringWidth(text);
+                Gui.drawRect(x, y, x + 4 + w, y + 13, BG);
+                mc.fontRenderer.drawString(text, x + 2, y + 2, TEXT);
+                return;
+            }
+            String line1 = (t.title != null ? t.title : "") + " - " + (t.artists != null ? t.artists : "");
+            if (line1.length() > 42) {
+                line1 = line1.substring(0, 42);
+            }
+            String line2 = (t.playing ? "\u25B6 " : "\u275A\u275A ") + fmtTime(t.progressMs) + " / " + fmtTime(t.durationMs);
+            int w1 = mc.fontRenderer.getStringWidth(line1);
+            int w2 = mc.fontRenderer.getStringWidth(line2);
+            int w = w1 > w2 ? w1 : w2;
+            Gui.drawRect(x, y, x + 4 + w, y + 26, BG);
+            mc.fontRenderer.drawString(line1, x + 2, y + 2, TEXT);
+            mc.fontRenderer.drawString(line2, x + 2, y + 12, TEXT_DIM);
+            if (DontCamMod.config.spotifyShowProgress && t.durationMs > 0) {
+                int barW = (int) (100.0f * scale);
+                double frac = (double) t.progressMs / (double) t.durationMs;
+                if (frac < 0.0) {
+                    frac = 0.0;
+                }
+                if (frac > 1.0) {
+                    frac = 1.0;
+                }
+                int filled = (int) (barW * frac);
+                Gui.drawRect(x, y + 26, x + barW, y + 29, 0xFF333333);
+                if (filled > 0) {
+                    Gui.drawRect(x, y + 26, x + filled, y + 29, 0xFF1DB954);
+                }
+            }
         } catch (Exception ignored) {
         }
     }

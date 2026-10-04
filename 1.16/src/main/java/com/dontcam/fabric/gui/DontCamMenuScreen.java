@@ -2,6 +2,7 @@ package com.dontcam.fabric.gui;
 
 import com.dontcam.fabric.DontCamBadges;
 import com.dontcam.fabric.DontCamFabricMod;
+import com.dontcam.fabric.spotify.SpotifyManager;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
@@ -34,7 +35,37 @@ public class DontCamMenuScreen extends Screen {
         addToggle("CPS Counter", DontCamFabricMod.config.cps, v -> DontCamFabricMod.config.cps = v, y + 24);
         addToggle("Keystrokes", DontCamFabricMod.config.keystrokes, v -> DontCamFabricMod.config.keystrokes = v, y + 48);
         addToggle("DC Badges", DontCamFabricMod.config.badges, v -> DontCamFabricMod.config.badges = v, y + 72);
-        this.addButton(new DontCamButtonWidget(this.width / 2 - 100, y + 100, 200, 20,
+        addToggle("Spotify", DontCamFabricMod.config.spotifyEnabled, v -> DontCamFabricMod.config.spotifyEnabled = v, y + 96);
+        String spotifyLabel;
+        try {
+            if (SpotifyManager.isLinked()) {
+                spotifyLabel = "Spotify: Rozlacz";
+            } else if (DontCamFabricMod.config.spotifyClientId == null || DontCamFabricMod.config.spotifyClientId.isEmpty()) {
+                spotifyLabel = "Spotify: ustaw ClientID";
+            } else {
+                spotifyLabel = "Spotify: Polacz";
+            }
+        } catch (Throwable t) {
+            spotifyLabel = "Spotify: Polacz";
+        }
+        final String spotifyLabelFinal = spotifyLabel;
+        this.addButton(new DontCamButtonWidget(this.width / 2 - 100, y + 120, 200, 20,
+                new LiteralText(spotifyLabelFinal),
+                button -> {
+                    try {
+                        if (SpotifyManager.isLinked()) {
+                            SpotifyManager.disconnect();
+                        } else {
+                            SpotifyManager.beginAuth();
+                        }
+                    } catch (Throwable ignored) {
+                    }
+                    DontCamFabricMod.config.save();
+                    if (this.client != null) {
+                        this.client.openScreen(new DontCamMenuScreen());
+                    }
+                }));
+        this.addButton(new DontCamButtonWidget(this.width / 2 - 100, y + 148, 200, 20,
                 new LiteralText("Done"),
                 button -> {
                     DontCamFabricMod.config.save();

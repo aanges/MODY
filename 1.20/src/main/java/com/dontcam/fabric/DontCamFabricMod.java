@@ -4,6 +4,7 @@ import com.dontcam.fabric.gui.DontCamMenuScreen;
 import com.dontcam.fabric.hud.ClickTracker;
 import com.dontcam.fabric.hud.HudOverlay;
 import com.dontcam.fabric.net.DontCamNetworking;
+import com.dontcam.fabric.spotify.SpotifyManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -58,6 +59,7 @@ public class DontCamFabricMod implements ClientModInitializer {
         DontCamNetworking.init();
         HudOverlay.init();
         ClickTracker.init();
+        SpotifyManager.ensureStarted();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client == null || client.player == null || client.currentScreen != null) {

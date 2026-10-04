@@ -1,6 +1,7 @@
 package com.dontcam.gui;
 
 import com.dontcam.DontCamMod;
+import com.dontcam.spotify.SpotifyManager;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 
@@ -12,6 +13,7 @@ public class GuiDontCamMenu extends GuiScreen {
     private static final int ID_CPS = 1;
     private static final int ID_KEYS = 2;
     private static final int ID_BADGES = 3;
+    private static final int ID_SPOTIFY = 4;
     private static final int ID_DONE = 99;
 
     @Override
@@ -22,7 +24,8 @@ public class GuiDontCamMenu extends GuiScreen {
         this.buttonList.add(new DontCamButton(ID_CPS, cx - 100, y + 24, 200, 20, ""));
         this.buttonList.add(new DontCamButton(ID_KEYS, cx - 100, y + 48, 200, 20, ""));
         this.buttonList.add(new DontCamButton(ID_BADGES, cx - 100, y + 72, 200, 20, ""));
-        this.buttonList.add(new DontCamButton(ID_DONE, cx - 100, y + 100, 200, 20, "Done"));
+        this.buttonList.add(new DontCamButton(ID_SPOTIFY, cx - 100, y + 96, 200, 20, ""));
+        this.buttonList.add(new DontCamButton(ID_DONE, cx - 100, y + 124, 200, 20, "Done"));
         refreshLabels();
     }
 
@@ -48,6 +51,9 @@ public class GuiDontCamMenu extends GuiScreen {
                     case ID_BADGES:
                         button.displayString = "DC Badges: " + onOff(DontCamMod.config.badges);
                         break;
+                    case ID_SPOTIFY:
+                        button.displayString = spotifyLabel();
+                        break;
                     default:
                         break;
                 }
@@ -58,6 +64,21 @@ public class GuiDontCamMenu extends GuiScreen {
 
     private static String onOff(boolean value) {
         return value ? "\u00A7aON" : "\u00A7cOFF";
+    }
+
+    private static String spotifyLabel() {
+        try {
+            if (SpotifyManager.isLinked()) {
+                return "Spotify: Rozlacz";
+            }
+            String cid = DontCamMod.config != null ? DontCamMod.config.spotifyClientId : "";
+            if (cid == null || cid.trim().isEmpty()) {
+                return "Spotify: ustaw ClientID";
+            }
+            return "Spotify: Polacz";
+        } catch (Exception ignored) {
+            return "Spotify: Polacz";
+        }
     }
 
     @Override
@@ -77,6 +98,16 @@ public class GuiDontCamMenu extends GuiScreen {
                 break;
             case ID_BADGES:
                 DontCamMod.config.badges = !DontCamMod.config.badges;
+                break;
+            case ID_SPOTIFY:
+                try {
+                    if (SpotifyManager.isLinked()) {
+                        SpotifyManager.disconnect();
+                    } else {
+                        SpotifyManager.beginAuth();
+                    }
+                } catch (Exception ignored) {
+                }
                 break;
             case ID_DONE:
                 DontCamMod.config.save();

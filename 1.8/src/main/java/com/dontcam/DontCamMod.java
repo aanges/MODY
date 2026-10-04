@@ -7,6 +7,7 @@ import com.dontcam.hud.HudOverlay;
 import com.dontcam.net.RosterSync;
 import com.dontcam.render.NametagRenderer;
 import com.dontcam.render.TabListSwap;
+import com.dontcam.spotify.SpotifyManager;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiMainMenu;
@@ -55,6 +56,10 @@ public class DontCamMod {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         config = new DontCamConfig(event.getModConfigurationDirectory());
+        try {
+            SpotifyManager.ensureStarted();
+        } catch (Exception ignored) {
+        }
 
         localMicrosoft = "msa".equalsIgnoreCase(System.getProperty("dontcam.auth", ""));
         try {

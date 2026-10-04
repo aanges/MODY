@@ -1,6 +1,7 @@
 package com.dontcam.fabric.hud;
 
 import com.dontcam.fabric.DontCamFabricMod;
+import com.dontcam.fabric.spotify.SpotifyManager;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -63,6 +64,10 @@ public class HudOverlay {
                 if (DontCamFabricMod.config.keystrokes) {
                     drawKeystrokes(client, context);
                 }
+            } catch (Throwable ignored) {
+            }
+            try {
+                drawSpotify(client, context);
             } catch (Throwable ignored) {
             }
         } catch (Throwable ignored) {
@@ -153,6 +158,98 @@ public class HudOverlay {
             key(client, context, x0, my, half, 12, "LMB", lmb);
             key(client, context, x0 + half + gap, my, totalW - half - gap, 12, "RMB", rmb);
         } catch (Throwable ignored) {
+        }
+    }
+
+    private static void drawSpotify(MinecraftClient client, DrawContext context) {
+        try {
+            if (client == null || context == null || client.textRenderer == null) {
+                return;
+            }
+            if (DontCamFabricMod.config == null || !DontCamFabricMod.config.spotifyEnabled) {
+                return;
+            }
+            SpotifyManager.Track t;
+            try {
+                t = SpotifyManager.snapshot();
+            } catch (Throwable th) {
+                return;
+            }
+            int ox;
+            int oy;
+            float sc;
+            boolean showProgress;
+            try {
+                ox = DontCamFabricMod.config.spotifyX;
+                oy = DontCamFabricMod.config.spotifyY;
+                sc = DontCamFabricMod.config.spotifyScale;
+                showProgress = DontCamFabricMod.config.spotifyShowProgress;
+            } catch (Throwable th) {
+                return;
+            }
+            if (sc <= 0.0f || Float.isNaN(sc) || Float.isInfinite(sc)) {
+                sc = 1.0f;
+            }
+            try {
+                context.getMatrices().push();
+            } catch (Throwable th) {
+                return;
+            }
+            try {
+                context.getMatrices().translate(ox, oy, 0.0f);
+                context.getMatrices().scale(sc, sc, 1.0f);
+                if (t == null) {
+                    String text = "Spotify: brak utworu";
+                    int w = client.textRenderer.getWidth(text);
+                    context.fill(0, 0, 8 + w, 14, BG);
+                    context.drawText(client.textRenderer, text, 4, 3, TEXT, false);
+                    return;
+                }
+                String title = t.title == null ? "" : t.title;
+                String artists = t.artists == null ? "" : t.artists;
+                String base = artists.isEmpty() ? title : title + " - " + artists;
+                if (base.length() > 32) {
+                    base = base.substring(0, 31) + "\u2026";
+                }
+                String icon = t.playing ? "\u25B6" : "\u275A\u275A";
+                String line2 = icon + " " + fmtTime(t.progressMs) + "/" + fmtTime(t.durationMs);
+                int w1 = client.textRenderer.getWidth(base);
+                int w2 = client.textRenderer.getWidth(line2);
+                int bw = Math.max(w1, w2) + 8;
+                boolean bar = showProgress && t.durationMs > 0;
+                int bh = bar ? 32 : 26;
+                context.fill(0, 0, bw, bh, BG);
+                context.drawText(client.textRenderer, base, 4, 3, TEXT, false);
+                context.drawText(client.textRenderer, line2, 4, 13, TEXT_DIM, false);
+                if (bar) {
+                    long p = Math.max(0L, Math.min(t.progressMs, t.durationMs));
+                    double frac = (double) p / (double) t.durationMs;
+                    int bwTotal = Math.max(0, bw - 8);
+                    int filled = (int) (bwTotal * frac);
+                    context.fill(4, bh - 6, bw - 4, bh - 4, 0xFF333333);
+                    if (filled > 0) {
+                        context.fill(4, bh - 6, 4 + filled, bh - 4, 0xFF1DB954);
+                    }
+                }
+            } finally {
+                try {
+                    context.getMatrices().pop();
+                } catch (Throwable ignored) {
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    static String fmtTime(long ms) {
+        try {
+            if (ms < 0L) {
+                ms = 0L;
+            }
+            long s = ms / 1000L;
+            return (s / 60L) + ":" + String.format("%02d", s % 60L);
+        } catch (Throwable t) {
+            return "0:00";
         }
     }
 }

@@ -11,9 +11,7 @@ import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -29,10 +27,6 @@ import java.util.UUID;
  */
 @Mixin(PlayerEntityRenderer.class)
 public abstract class MixinPlayerEntityRenderer {
-
-    @Shadow
-    @Final
-    private EntityRenderDispatcher dispatcher;
 
     @Inject(method = "renderLabelIfPresent", at = @At("HEAD"), cancellable = true)
     private void dontcam$label(AbstractClientPlayerEntity player, Text text, MatrixStack matrices,
@@ -83,7 +77,13 @@ public abstract class MixinPlayerEntityRenderer {
             if (textRenderer == null) {
                 return;
             }
-            if (this.dispatcher == null || this.dispatcher.getRotation() == null) {
+            EntityRenderDispatcher dispatcher;
+            try {
+                dispatcher = client.getEntityRenderDispatcher();
+            } catch (Throwable t) {
+                return;
+            }
+            if (dispatcher == null || dispatcher.getRotation() == null) {
                 return;
             }
             if (matrices.peek() == null || matrices.peek().getPositionMatrix() == null) {
@@ -110,7 +110,7 @@ public abstract class MixinPlayerEntityRenderer {
                     height = 1.8f;
                 }
                 matrices.translate(0.0, height + 0.5, 0.0);
-                matrices.multiply(this.dispatcher.getRotation());
+                matrices.multiply(dispatcher.getRotation());
                 matrices.scale(-0.025f, -0.025f, 0.025f);
                 if (matrices.peek() == null || matrices.peek().getPositionMatrix() == null) {
                     return;

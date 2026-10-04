@@ -2,6 +2,7 @@ package com.dontcam.fabric.gui;
 
 import com.dontcam.fabric.DontCamBadges;
 import com.dontcam.fabric.DontCamFabricMod;
+import com.dontcam.fabric.spotify.SpotifyManager;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
@@ -44,7 +45,38 @@ public class DontCamMenuScreen extends Screen {
             addToggle("CPS Counter", DontCamFabricMod.config.cps, v -> DontCamFabricMod.config.cps = v, y + 24);
             addToggle("Keystrokes", DontCamFabricMod.config.keystrokes, v -> DontCamFabricMod.config.keystrokes = v, y + 48);
             addToggle("DC Badges", DontCamFabricMod.config.badges, v -> DontCamFabricMod.config.badges = v, y + 72);
-            this.addDrawableChild(new DontCamButtonWidget(this.width / 2 - 100, y + 100, 200, 20,
+            addToggle("Spotify", DontCamFabricMod.config.spotifyEnabled, v -> DontCamFabricMod.config.spotifyEnabled = v, y + 96);
+            boolean linked;
+            try {
+                linked = SpotifyManager.isLinked();
+            } catch (Exception e) {
+                linked = false;
+            }
+            String clientId = "";
+            try {
+                if (DontCamFabricMod.config != null && DontCamFabricMod.config.spotifyClientId != null) {
+                    clientId = DontCamFabricMod.config.spotifyClientId;
+                }
+            } catch (Exception ignored) {
+            }
+            String linkLabel = linked ? "Spotify: Rozlacz" : (clientId.isEmpty() ? "Spotify: ustaw ClientID" : "Spotify: Polacz");
+            this.addDrawableChild(new DontCamButtonWidget(this.width / 2 - 100, y + 120, 200, 20,
+                    Text.literal(linkLabel),
+                    button -> {
+                        try {
+                            if (SpotifyManager.isLinked()) {
+                                SpotifyManager.disconnect();
+                            } else {
+                                SpotifyManager.beginAuth();
+                            }
+                            if (DontCamFabricMod.config != null) {
+                                DontCamFabricMod.config.save();
+                            }
+                            this.clearAndInit();
+                        } catch (Exception ignored) {
+                        }
+                    }));
+            this.addDrawableChild(new DontCamButtonWidget(this.width / 2 - 100, y + 148, 200, 20,
                     Text.literal("Done"),
                     button -> {
                         try {
